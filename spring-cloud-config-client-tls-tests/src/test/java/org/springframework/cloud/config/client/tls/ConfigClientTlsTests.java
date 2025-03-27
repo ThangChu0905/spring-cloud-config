@@ -56,7 +56,7 @@ class ConfigClientTlsTests extends AbstractTlsSetup {
 	}
 
 	@Test
-	public void clientCertCanWork() {
+	void clientCertCanWork() {
 		startConfigServer(true);
 		try (TlsConfigClientRunner client = createConfigClient()) {
 			enableTlsClient(client);
@@ -68,7 +68,7 @@ class ConfigClientTlsTests extends AbstractTlsSetup {
 	}
 
 	@Test
-	public void clientCanStartWithoutKeyStoreSet() {
+	void clientCanStartWithoutKeyStoreSet() {
 		startConfigServer(false);
 		try (TlsConfigClientRunner client = createConfigClient()) {
 			enableTlsClient(client, false);
@@ -81,7 +81,7 @@ class ConfigClientTlsTests extends AbstractTlsSetup {
 
 	@Test
 	@SuppressWarnings({ "unchecked" })
-	public void tlsSetsRequestReadTimeout() {
+	void tlsSetsRequestReadTimeout() {
 		startConfigServer(true);
 		try (TlsConfigClientRunner client = createConfigClient()) {
 			enableTlsClient(client);
@@ -98,7 +98,7 @@ class ConfigClientTlsTests extends AbstractTlsSetup {
 	}
 
 	@Test
-	public void tlsClientCanBeDisabled() {
+	void tlsClientCanBeDisabled() {
 		startConfigServer(true);
 		try (TlsConfigClientRunner client = createConfigClient()) {
 			enableTlsClient(client);
@@ -109,7 +109,7 @@ class ConfigClientTlsTests extends AbstractTlsSetup {
 	}
 
 	@Test
-	public void noCertCannotWork() {
+	void noCertCannotWork() {
 		startConfigServer(true);
 		try (TlsConfigClientRunner client = createConfigClient()) {
 			client.disableTls();
@@ -119,7 +119,7 @@ class ConfigClientTlsTests extends AbstractTlsSetup {
 	}
 
 	@Test
-	public void wrongCertCannotWork() {
+	void wrongCertCannotWork() {
 		startConfigServer(true);
 		try (TlsConfigClientRunner client = createConfigClient()) {
 			enableTlsClient(client);
@@ -130,7 +130,7 @@ class ConfigClientTlsTests extends AbstractTlsSetup {
 	}
 
 	@Test
-	public void wrongPasswordCauseFailure() {
+	void wrongPasswordCauseFailure() {
 		startConfigServer(true);
 		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
 			TlsConfigClientRunner client = createConfigClient(false);
@@ -141,7 +141,7 @@ class ConfigClientTlsTests extends AbstractTlsSetup {
 	}
 
 	@Test
-	public void nonExistKeyStoreCauseFailure() {
+	void nonExistKeyStoreCauseFailure() {
 		startConfigServer(true);
 		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
 			TlsConfigClientRunner client = createConfigClient(false);
@@ -152,7 +152,7 @@ class ConfigClientTlsTests extends AbstractTlsSetup {
 	}
 
 	@Test
-	public void wrongTrustStoreCannotWork() {
+	void wrongTrustStoreCannotWork() {
 		startConfigServer(true);
 		try (TlsConfigClientRunner client = createConfigClient()) {
 			enableTlsClient(client);
