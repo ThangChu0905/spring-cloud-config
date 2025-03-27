@@ -20,19 +20,17 @@ import java.io.File;
 
 import org.apache.commons.logging.LogFactory;
 import org.apache.hc.core5.http.io.SocketConfig;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.config.client.ConfigClientProperties;
 import org.springframework.cloud.config.client.ConfigClientRequestTemplateFactory;
 import org.springframework.cloud.config.server.EnableConfigServer;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
-
-public class ConfigClientTlsTests extends AbstractTlsSetup {
+class ConfigClientTlsTests extends AbstractTlsSetup {
 
 	protected static TlsConfigServerRunner server;
 
