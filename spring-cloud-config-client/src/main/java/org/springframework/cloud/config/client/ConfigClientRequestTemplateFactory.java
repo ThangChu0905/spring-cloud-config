@@ -31,10 +31,10 @@ import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.util.Timeout;
-
+import static org.springframework.cloud.config.client.ConfigClientProperties.AUTHORIZATION;
 import org.springframework.cloud.configuration.SSLContextFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
@@ -45,8 +45,6 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
-
-import static org.springframework.cloud.config.client.ConfigClientProperties.AUTHORIZATION;
 
 public class ConfigClientRequestTemplateFactory {
 
@@ -113,15 +111,15 @@ public class ConfigClientRequestTemplateFactory {
 			throws GeneralSecurityException, IOException {
 		SSLContextFactory factory = new SSLContextFactory(client.getTls());
 		SSLContext sslContext = factory.createSSLContext();
-		SSLConnectionSocketFactoryBuilder sslConnectionSocketFactoryBuilder = SSLConnectionSocketFactoryBuilder
-			.create();
-		sslConnectionSocketFactoryBuilder.setSslContext(sslContext);
 		SocketConfig.Builder socketBuilder = createSocketBuilderForTls(client);
+		SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext);
 		PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
-			.setDefaultSocketConfig(socketBuilder.build())
-			.setSSLSocketFactory(sslConnectionSocketFactoryBuilder.build())
-			.build();
-		return connectionManager;
+
+    	.setDefaultSocketConfig(socketBuilder.build())
+    	.setSSLSocketFactory(socketFactory)
+    	.build();
+
+	return connectionManager;
 	}
 
 	protected SocketConfig.Builder createSocketBuilderForTls(ConfigClientProperties client) {
