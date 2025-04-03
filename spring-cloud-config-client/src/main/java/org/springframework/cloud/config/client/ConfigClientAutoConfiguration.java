@@ -50,8 +50,7 @@ public class ConfigClientAutoConfiguration {
 				ConfigClientProperties.class).length > 0) {
 			return BeanFactoryUtils.beanOfTypeIncludingAncestors(context.getParent(), ConfigClientProperties.class);
 		}
-		ConfigClientProperties client = new ConfigClientProperties(environment);
-		return client;
+		return new ConfigClientProperties(environment);
 	}
 
 	@Configuration(proxyBeanMethods = false)
