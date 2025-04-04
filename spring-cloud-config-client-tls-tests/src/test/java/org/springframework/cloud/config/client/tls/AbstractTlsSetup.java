@@ -82,7 +82,7 @@ public abstract class AbstractTlsSetup {
 		return result;
 	}
 
-	interface KeyStoreSupplier {
+	private interface KeyStoreSupplier {
 
 		KeyStore createKeyStore() throws Exception;
 
