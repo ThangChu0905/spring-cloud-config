@@ -48,25 +48,27 @@ public abstract class AbstractTlsSetup {
 		}
 
 		private static KeyAndCert createAndSaveCerts() throws Exception {
-		KeyTool tool = new KeyTool();
-
-		KeyAndCert ca = tool.createCA("MyCA");
-		serverCert = saveKeyAndCert(ca.sign("server"));
-		clientCert = saveKeyAndCert(ca.sign("client"));
-
-		wrongCaCert = saveCert(tool.createCA("WrongCA"));
-    	wrongClientCert = saveKeyAndCert(wrongCaCert.sign("client"));
-    	return ca;
+			KeyTool tool = new KeyTool();
+			KeyAndCert ca = tool.createCA("MyCA");
+			serverCert = saveKeyAndCert(ca.sign("server"));
+			clientCert = saveKeyAndCert(ca.sign("client"));
+		
+			KeyAndCert wrongCa = tool.createCA("WrongCA");  
+			KeyAndCert wrongClient = wrongCa.sign("client");
+			wrongCaCert = saveCert(wrongCa);  
+			wrongClientCert = saveKeyAndCert(wrongClient);
+		
+			return ca;
 		}
 
 		private static void configureSystemTrustStore(KeyAndCert ca){
 
 		System.setProperty("javax.net.ssl.trustStore", caCert.getAbsolutePath());
-		System.setProperty("javax.net.ssl.trustStorePassword", KEY_STORE_PASSWORD);
+		System.setProperty("javax.net.ssl.trustStorePassword", TEST_KEY_STORE_PASSWORD);
 	}
 
 	private static File saveKeyAndCert(KeyAndCert keyCert) throws Exception {
-		return saveKeyStore(keyCert.subject(), () -> keyCert.storeKeyAndCert(KEY_PASSWORD));
+		return saveKeyStore(keyCert.subject(), () -> keyCert.storeKeyAndCert(TEST_KEY_PASSWORD));
 	}
 
 	private static File saveCert(KeyAndCert keyCert) throws Exception {
@@ -79,7 +81,7 @@ public abstract class AbstractTlsSetup {
 
 		try (OutputStream output = new FileOutputStream(result)) {
 			KeyStore store = func.createKeyStore();
-			store.store(output, KEY_STORE_PASSWORD.toCharArray());
+			store.store(output, TEST_KEY_STORE_PASSWORD.toCharArray());
 		}
 		return result;
 	}
@@ -90,4 +92,15 @@ public abstract class AbstractTlsSetup {
 
 	}
 
+	private static class CertificateFactory {
+		private final KeyTool tool = new KeyTool();
+	
+		public KeyAndCert createCA(String name) throws Exception {
+			return tool.createCA(name);
+		}
+	
+		public KeyAndCert signCertificate(KeyAndCert ca, String name) throws Exception {
+			return ca.sign(name);
+		}
+}
 }
