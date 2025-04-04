@@ -25,11 +25,11 @@ import org.junit.jupiter.api.BeforeAll;
 
 public abstract class AbstractTlsSetup {
 
-	protected static final String KEY_STORE_PASSWORD = "test-key-store-password";
+	protected static final String TEST_KEY_STORE_PASSWORD = "test-key-store-password";
 
-	protected static final String KEY_PASSWORD = "test-key-password";
+	protected static final String TEST_KEY_PASSWORD = "test-key-password";
 
-	protected static final String WRONG_PASSWORD = "test-wrong-password";
+	protected static final String TEST_WRONG_PASSWORD = "test-wrong-password";
 
 	protected static File caCert;
 
