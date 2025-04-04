@@ -43,21 +43,23 @@ public abstract class AbstractTlsSetup {
 
 	@BeforeAll
 	public static void createCertificates() throws Exception {
+		KeyAndCert ca = createAndSaveCerts(); 
+		configureSystemTrustStore(ca);
+		}
+
+		private static KeyAndCert createAndSaveCerts() throws Exception {
 		KeyTool tool = new KeyTool();
 
 		KeyAndCert ca = tool.createCA("MyCA");
-		KeyAndCert server = ca.sign("server");
-		KeyAndCert client = ca.sign("client");
+		serverCert = saveKeyAndCert(ca.sign("server"));
+		clientCert = saveKeyAndCert(ca.sign("client"));
 
-		caCert = saveCert(ca);
-		serverCert = saveKeyAndCert(server);
-		clientCert = saveKeyAndCert(client);
+		wrongCaCert = saveCert(tool.createCA("WrongCA"));
+    	wrongClientCert = saveKeyAndCert(wrongCaCert.sign("client"));
+    	return ca;
+		}
 
-		KeyAndCert wrongCa = tool.createCA("WrongCA");
-		KeyAndCert wrongClient = wrongCa.sign("client");
-
-		wrongCaCert = saveCert(wrongCa);
-		wrongClientCert = saveKeyAndCert(wrongClient);
+		private static void configureSystemTrustStore(KeyAndCert ca){
 
 		System.setProperty("javax.net.ssl.trustStore", caCert.getAbsolutePath());
 		System.setProperty("javax.net.ssl.trustStorePassword", KEY_STORE_PASSWORD);
