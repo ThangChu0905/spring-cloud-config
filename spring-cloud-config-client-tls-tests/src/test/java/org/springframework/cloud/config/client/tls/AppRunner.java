@@ -106,6 +106,11 @@ public class AppRunner implements AutoCloseable {
 		if (app == null) {
 			throw new RuntimeException("App is not running.");
 		}
+		int port = port();
+		if (port == INVALID_PORT){
+			throw new IllegalStateException("Server port is not configured");
+		}
+	
 
 		String protocol = tlsEnabled() ? "https" : "http";
 		return String.format("%s://localhost:%d/", protocol, port());
