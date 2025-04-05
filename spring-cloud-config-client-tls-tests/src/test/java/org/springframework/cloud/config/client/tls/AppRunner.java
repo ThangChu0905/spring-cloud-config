@@ -97,10 +97,8 @@ public class AppRunner implements AutoCloseable {
 		return parent().getBeansOfType(type);
 	}
 
+	private static final int INVALID_PORT = -1;
 	public int port() {
-		if (app == null) {
-			throw new RuntimeException("App is not running.");
-		}
 		return app.getEnvironment().getProperty("server.port", Integer.class, -1);
 	}
 
