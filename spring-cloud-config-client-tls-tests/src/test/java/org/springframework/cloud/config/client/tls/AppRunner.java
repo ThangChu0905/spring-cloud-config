@@ -26,6 +26,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.util.TestSocketUtils;
 
+
 public class AppRunner implements AutoCloseable {
 
 	private Class<?> appClass;
@@ -114,6 +115,14 @@ public class AppRunner implements AutoCloseable {
 
 	private boolean tlsEnabled() {
 		return app.getEnvironment().getProperty("server.ssl.enabled", Boolean.class, false);
+	}
+
+	public void property(String key, int value) {
+    	props.put(key, String.valueOf(value));
+	}
+
+	public void property(String key, boolean value) {
+    	props.put(key, String.valueOf(value));
 	}
 
 	@Override
