@@ -21,13 +21,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.builder.SpringApplicationBuilder ;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.util.TestSocketUtils;
 
-
 public class AppRunner implements AutoCloseable {
+
+	private final PortFinder portFinder;
 
 	private Class<?> appClass;
 
@@ -35,9 +36,10 @@ public class AppRunner implements AutoCloseable {
 
 	private ConfigurableApplicationContext app;
 
-	public AppRunner(Class<?> appClass) {
+	public AppRunner(Class<?> appClass, PortFinder portFinder) {
 		this.appClass = appClass;
-		props = new LinkedHashMap<>();
+		this.portFinder = portFinder;
+		this.props = new LinkedHashMap<>();
 	}
 
 	public void property(String key, String value) {
@@ -56,9 +58,9 @@ public class AppRunner implements AutoCloseable {
 	}
 
 	private int availabeTcpPort() {
-		return TestSocketUtils.findAvailableTcpPort();
+		return portFinder.findAvailablePort();
 	}
-
+	
 	private String[] props() {
 		List<String> result = new ArrayList<>();
 
@@ -128,6 +130,17 @@ public class AppRunner implements AutoCloseable {
     	props.put(key, String.valueOf(value));
 	}
 
+	public interface PortFinder{
+		int findAvailablePort();
+	}
+
+	public static class DefaultPortFinder implements PortFinder {
+		@Override 
+        public int findAvailablePort() {
+            return TestSocketUtils.findAvailableTcpPort();
+		 
+	}
+}
 	@Override
 	public void close() {
 		stop();
