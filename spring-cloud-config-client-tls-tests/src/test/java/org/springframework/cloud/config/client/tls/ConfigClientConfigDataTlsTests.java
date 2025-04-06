@@ -26,7 +26,7 @@ public class ConfigClientConfigDataTlsTests extends ConfigClientTlsTests {
 
 	@Override
 	protected TlsConfigClientRunner createConfigClient() {
-		return createConfigClient(true);
+		return createConfigClient(true); // remove code duplication in createConfigClient()
 	}
 
 	private String buildImportValue(boolean optional){
