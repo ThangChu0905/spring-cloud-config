@@ -14,161 +14,149 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.config.client;
+ package org.springframework.cloud.config.client;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import javax.net.ssl.SSLContext;
-
-import org.apache.commons.logging.Log;
-import org.apache.hc.client5.http.classic.HttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.core5.http.io.SocketConfig;
-import org.apache.hc.core5.util.Timeout;
-import static org.springframework.cloud.config.client.ConfigClientProperties.AUTHORIZATION;
-import org.springframework.cloud.configuration.SSLContextFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpRequest;
-import org.springframework.http.client.ClientHttpRequestExecution;
-import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.web.client.RestTemplate;
-
-public class ConfigClientRequestTemplateFactory {
-
-	private final Log log;
-
-	private final ConfigClientProperties properties;
-
-	public ConfigClientRequestTemplateFactory(Log log, ConfigClientProperties properties) {
-		this.log = log;
-		this.properties = properties;
-	}
-
-	public Log getLog() {
-		return this.log;
-	}
-
-	public ConfigClientProperties getProperties() {
-		return this.properties;
-	}
-
-	public RestTemplate create() {
-		if (properties.getRequestReadTimeout() < 0) {
-			throw new IllegalStateException("Invalid Value for Read Timeout set.");
-		}
-		if (properties.getRequestConnectTimeout() < 0) {
-			throw new IllegalStateException("Invalid Value for Connect Timeout set.");
-		}
-
-		ClientHttpRequestFactory requestFactory = createHttpRequestFactory(properties);
-		RestTemplate template = new RestTemplate(requestFactory);
-		Map<String, String> headers = new HashMap<>(properties.getHeaders());
-		headers.remove(AUTHORIZATION); // To avoid redundant addition of header
-		if (!headers.isEmpty()) {
-			template.setInterceptors(Arrays.asList(new GenericRequestHeaderInterceptor(headers)));
-		}
-
-		return template;
-	}
-
-	protected ClientHttpRequestFactory createHttpRequestFactory(ConfigClientProperties client) {
-		if (client.getTls().isEnabled()) {
-			try {
-				PoolingHttpClientConnectionManager connectionManager = createConnectionManagerForTls(client);
-				HttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
-				HttpComponentsClientHttpRequestFactory result = new HttpComponentsClientHttpRequestFactory(httpClient);
-
-				result.setConnectTimeout(client.getRequestConnectTimeout());
-				return result;
-
-			}
-			catch (GeneralSecurityException | IOException ex) {
-				log.error(ex);
-				throw new IllegalStateException("Failed to create config client with TLS.", ex);
-			}
-		}
-
-		SimpleClientHttpRequestFactory result = new SimpleClientHttpRequestFactory();
-		result.setReadTimeout(client.getRequestReadTimeout());
-		result.setConnectTimeout(client.getRequestConnectTimeout());
-		return result;
-	}
-
-	protected PoolingHttpClientConnectionManager createConnectionManagerForTls(ConfigClientProperties client)
-			throws GeneralSecurityException, IOException {
-		SSLContextFactory factory = new SSLContextFactory(client.getTls());
-		SSLContext sslContext = factory.createSSLContext();
-		SocketConfig.Builder socketBuilder = createSocketBuilderForTls(client);
-		SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext);
-		PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
-
-    	.setDefaultSocketConfig(socketBuilder.build())
-    	.setSSLSocketFactory(socketFactory)
-    	.build();
-
-	return connectionManager;
-	}
-
-	protected SocketConfig.Builder createSocketBuilderForTls(ConfigClientProperties client) {
-		SocketConfig.Builder socketBuilder = SocketConfig.custom()
-			.setSoTimeout(Timeout.of(client.getRequestReadTimeout(), TimeUnit.MILLISECONDS));
-		return socketBuilder;
-	}
-
-	public void addAuthorizationToken(HttpHeaders httpHeaders, String username, String password) {
-		String authorization = properties.getHeaders().get(AUTHORIZATION);
-
-		if (password != null && authorization != null) {
-			throw new IllegalStateException("You must set either 'password' or 'authorization'");
-		}
-
-		if (password != null) {
-			byte[] token = Base64.getEncoder().encode((username + ":" + password).getBytes());
-			httpHeaders.add("Authorization", "Basic " + new String(token));
-		}
-		else if (authorization != null) {
-			httpHeaders.add("Authorization", authorization);
-		}
-
-	}
-
-	/**
-	 * Adds the provided headers to the request.
-	 */
-	public static class GenericRequestHeaderInterceptor implements ClientHttpRequestInterceptor {
-
-		private final Map<String, String> headers;
-
-		public GenericRequestHeaderInterceptor(Map<String, String> headers) {
-			this.headers = headers;
-		}
-
-		@Override
-		public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
-				throws IOException {
-			for (Map.Entry<String, String> header : this.headers.entrySet()) {
-				request.getHeaders().add(header.getKey(), header.getValue());
-			}
-			return execution.execute(request, body);
-		}
-
-		protected Map<String, String> getHeaders() {
-			return this.headers;
-		}
-
-	}
-
-}
+ import java.io.IOException;
+ import java.security.GeneralSecurityException;
+ import java.util.Arrays;
+ import java.util.Base64;
+ import java.util.HashMap;
+ import java.util.Map;
+ import java.util.concurrent.TimeUnit;
+ 
+ import javax.net.ssl.SSLContext;
+ 
+ import org.apache.commons.logging.Log;
+ import org.apache.hc.client5.http.classic.HttpClient;
+ import org.apache.hc.client5.http.impl.classic.HttpClients;
+ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+ import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+ import org.apache.hc.core5.http.io.SocketConfig;
+ import org.apache.hc.core5.util.Timeout;
+ import static org.springframework.cloud.config.client.ConfigClientProperties.AUTHORIZATION;
+ import org.springframework.cloud.configuration.SSLContextFactory;
+ import org.springframework.http.HttpHeaders;
+ import org.springframework.http.HttpRequest;
+ import org.springframework.http.client.ClientHttpRequestExecution;
+ import org.springframework.http.client.ClientHttpRequestFactory;
+ import org.springframework.http.client.ClientHttpRequestInterceptor;
+ import org.springframework.http.client.ClientHttpResponse;
+ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+ import org.springframework.http.client.SimpleClientHttpRequestFactory;
+ import org.springframework.web.client.RestTemplate;
+ 
+ public class ConfigClientRequestTemplateFactory {
+ 
+	 private final Log log;
+ 
+	 private final ConfigClientProperties properties;
+ 
+	 public ConfigClientRequestTemplateFactory(Log log, ConfigClientProperties properties) {
+		 this.log = log;
+		 this.properties = properties;
+	 }
+ 
+	 public Log getLog() {
+		 return this.log;
+	 }
+ 
+	 public ConfigClientProperties getProperties() {
+		 return this.properties;
+	 }
+ 
+	 public RestTemplate create() {
+		 if (properties.getRequestReadTimeout() < 0) {
+			 throw new IllegalStateException("Invalid Value for Read Timeout set.");
+		 }
+		 if (properties.getRequestConnectTimeout() < 0) {
+			 throw new IllegalStateException("Invalid Value for Connect Timeout set.");
+		 }
+ 
+		 ClientHttpRequestFactory requestFactory = createHttpRequestFactory(properties);
+		 RestTemplate template = new RestTemplate(requestFactory);
+		 Map<String, String> headers = new HashMap<>(properties.getHeaders());
+		 headers.remove(AUTHORIZATION); // To avoid redundant addition of header
+		 if (!headers.isEmpty()) {
+			 template.setInterceptors(Arrays.asList(createHeaderInterceptor(headers)));
+		 }
+ 
+		 return template;
+	 }
+	 
+	 /**
+	  * @param headers 
+	  * @return i
+	  */
+	 protected ClientHttpRequestInterceptor createHeaderInterceptor(final Map<String, String> headers) {
+		 return new ClientHttpRequestInterceptor() {
+			 @Override
+			 public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
+					 throws IOException {
+				 for (Map.Entry<String, String> header : headers.entrySet()) {
+					 request.getHeaders().add(header.getKey(), header.getValue());
+				 }
+				 return execution.execute(request, body);
+			 }
+		 };
+	 }
+ 
+	 protected ClientHttpRequestFactory createHttpRequestFactory(ConfigClientProperties client) {
+		 if (client.getTls().isEnabled()) {
+			 try {
+				 PoolingHttpClientConnectionManager connectionManager = createConnectionManagerForTls(client);
+				 HttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
+				 HttpComponentsClientHttpRequestFactory result = new HttpComponentsClientHttpRequestFactory(httpClient);
+ 
+				 result.setConnectTimeout(client.getRequestConnectTimeout());
+				 return result;
+ 
+			 }
+			 catch (GeneralSecurityException | IOException ex) {
+				 log.error(ex);
+				 throw new IllegalStateException("Failed to create config client with TLS.", ex);
+			 }
+		 }
+ 
+		 SimpleClientHttpRequestFactory result = new SimpleClientHttpRequestFactory();
+		 result.setReadTimeout(client.getRequestReadTimeout());
+		 result.setConnectTimeout(client.getRequestConnectTimeout());
+		 return result;
+	 }
+ 
+	 protected PoolingHttpClientConnectionManager createConnectionManagerForTls(ConfigClientProperties client)
+			 throws GeneralSecurityException, IOException {
+		 SSLContextFactory factory = new SSLContextFactory(client.getTls());
+		 SSLContext sslContext = factory.createSSLContext();
+		 SocketConfig.Builder socketBuilder = createSocketBuilderForTls(client);
+		 SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext);
+		 PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+			 .setDefaultSocketConfig(socketBuilder.build())
+			 .setSSLSocketFactory(socketFactory)
+			 .build();
+ 
+		 return connectionManager;
+	 }
+ 
+	 protected SocketConfig.Builder createSocketBuilderForTls(ConfigClientProperties client) {
+		 SocketConfig.Builder socketBuilder = SocketConfig.custom()
+			 .setSoTimeout(Timeout.of(client.getRequestReadTimeout(), TimeUnit.MILLISECONDS));
+		 return socketBuilder;
+	 }
+ 
+	 public void addAuthorizationToken(HttpHeaders httpHeaders, String username, String password) {
+		 String authorization = properties.getHeaders().get(AUTHORIZATION);
+ 
+		 if (password != null && authorization != null) {
+			 throw new IllegalStateException("You must set either 'password' or 'authorization'");
+		 }
+ 
+		 if (password != null) {
+			 byte[] token = Base64.getEncoder().encode((username + ":" + password).getBytes());
+			 httpHeaders.add("Authorization", "Basic " + new String(token));
+		 }
+		 else if (authorization != null) {
+			 httpHeaders.add("Authorization", authorization);
+		 }
+	 }
+ }
