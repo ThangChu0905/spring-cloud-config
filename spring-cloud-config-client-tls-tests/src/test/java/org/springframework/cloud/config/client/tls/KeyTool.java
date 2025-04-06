@@ -40,9 +40,19 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
 public class KeyTool {
 
-	private static final long ONE_DAY = 1000L * 60L * 60L * 24L;
+	private final long oneDay;
 
-	private static final long TEN_YEARS = ONE_DAY * 365L * 10L;
+	private final long tenYears;
+
+	public KeyTool(){
+		this.oneDay = 1000L * 60L * 60L * 24L;
+		this.tenYears = this.oneDay * 365L * 10L;
+	}
+
+	public KeyTool(long customDayInMillis, long customCertValidityDays) {
+        this.oneDay = customDayInMillis;
+        this.tenYears = this.oneDay * customCertValidityDays;
+    }
 
 	public KeyAndCert createCA(String ca) throws Exception {
 		KeyPair keyPair = createKeyPair();
@@ -95,8 +105,8 @@ public class KeyTool {
 
 		long now = System.currentTimeMillis();
 		BigInteger serialNum = BigInteger.valueOf(now);
-		Date notBefore = new Date(now - ONE_DAY);
-		Date notAfter = new Date(now + TEN_YEARS);
+		Date notBefore = new Date(now - oneDay);
+		Date notAfter = new Date(now + tenYears);
 
 		return new JcaX509v3CertificateBuilder(issuerName, serialNum, notBefore, notAfter, subjectName, publicKey);
 	}
