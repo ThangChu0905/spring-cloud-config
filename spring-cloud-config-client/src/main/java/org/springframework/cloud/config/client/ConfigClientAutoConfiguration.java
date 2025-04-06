@@ -17,19 +17,11 @@
 package org.springframework.cloud.config.client;
 
 import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
-import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.context.refresh.ContextRefresher;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
-
 /**
  * Expose a ConfigClientProperties just so that there is a way to inspect the properties
  * bound to it. It won't be available in time for autowiring into the bootstrap context,
@@ -42,46 +34,19 @@ import org.springframework.core.env.Environment;
  */
 @Configuration(proxyBeanMethods = false)
 public class ConfigClientAutoConfiguration {
-
-	@Bean
-	@ConditionalOnMissingBean
-	public ConfigClientProperties configClientProperties(Environment environment, ApplicationContext context) {
-		if (context.getParent() != null && BeanFactoryUtils.beanNamesForTypeIncludingAncestors(context.getParent(),
-				ConfigClientProperties.class).length > 0) {
-			return BeanFactoryUtils.beanOfTypeIncludingAncestors(context.getParent(), ConfigClientProperties.class);
-		}
-		return new ConfigClientProperties(environment);
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnClass(HealthIndicator.class)
-	@ConditionalOnEnabledHealthIndicator("config")
-	protected static class ConfigServerHealthIndicatorConfiguration {
-
-		@Bean
-		public ConfigClientHealthProperties configClientHealthProperties() {
-			return new ConfigClientHealthProperties();
-		}
-
-		@Bean
-		public ConfigServerHealthIndicator clientConfigServerHealthIndicator(ConfigClientHealthProperties properties,
-				ConfigurableEnvironment environment) {
-			return new ConfigServerHealthIndicator(environment, properties);
-		}
-
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnClass(ContextRefresher.class)
-	@ConditionalOnBean(ContextRefresher.class)
-	@ConditionalOnProperty("spring.cloud.config.watch.enabled")
-	protected static class ConfigClientWatchConfiguration {
-
-		@Bean
-		public ConfigClientWatch configClientWatch(ContextRefresher contextRefresher) {
-			return new ConfigClientWatch(contextRefresher);
-		}
-
-	}
-
+@Bean
+    @ConditionalOnMissingBean
+    public ConfigClientProperties configClientProperties(Environment environment, ApplicationContext context) {
+        if (context.getParent() != null && 
+            BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
+                context.getParent(), 
+                ConfigClientProperties.class
+            ).length > 0) {
+            return BeanFactoryUtils.beanOfTypeIncludingAncestors(
+                context.getParent(), 
+                ConfigClientProperties.class
+            );
+        }
+        return new ConfigClientProperties(environment);
+    }
 }
