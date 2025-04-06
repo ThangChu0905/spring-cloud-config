@@ -15,8 +15,17 @@
  */
 
 package org.springframework.cloud.config.client.tls;
-
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 public class TlsConfigClientRunner extends AppRunner {
 
@@ -25,7 +34,7 @@ public class TlsConfigClientRunner extends AppRunner {
 	}
 
 	public TlsConfigClientRunner(Class<?> appClass, AppRunner server, String importKey, String importValue) {
-		super(appClass);
+		super(appClass, new AppRunner.DefaultPortFinder());
 
 		property("spring.cloud.config.uri", server.root());
 		property("spring.cloud.config.enabled", "true");
@@ -62,5 +71,53 @@ public class TlsConfigClientRunner extends AppRunner {
 	private String pathOf(File file) {
 		return String.format("file:%s", file.getAbsolutePath());
 	}
+		
+		static class TestApp { public static void main(String[] args) {} }
+		@Nested
+    	public class TlsConfigClientRunnerTest {
+        	private AppRunner server;
+        	private TlsConfigClientRunner client;
+        
+			@TempDir
+        	static Path tempDir;
+			static File keystore;
+			static File truststore;
 
+        	@BeforeAll
+        	static void setup() throws IOException {
+            	keystore = tempDir.resolve("keystore.p12").toFile();
+            	truststore = tempDir.resolve("truststore.p12").toFile();
+            	keystore.createNewFile();
+            	truststore.createNewFile();
+        	}
+
+        @BeforeEach
+        void init() {
+            server = new AppRunner(TestApp.class, new AppRunner.DefaultPortFinder());
+            client = new TlsConfigClientRunner(TestApp.class, server);
+        }
+
+        @AfterEach
+        void tearDown() {
+            client.stop();
+            server.stop();
+        }
+
+        @Test
+        void shouldEnableTls() {
+            client.enableTls();
+            assertThat(client.getProperty("spring.cloud.config.tls.enabled")).isEqualTo("true");
+        }
+        @Test
+        void shouldSetKeyStoreWithPassword() {
+            client.setKeyStore(keystore, "storepass", "keypass");
+            assertThat(client.getProperty("spring.cloud.config.tls.key-store"))
+                .contains(keystore.getName());
+        }
+
+        static class TestApp {
+            public static void main(String[] args) {}
+	}
+
+}
 }
