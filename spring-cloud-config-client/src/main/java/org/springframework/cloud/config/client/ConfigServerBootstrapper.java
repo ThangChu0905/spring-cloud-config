@@ -29,7 +29,32 @@ import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 
-public class ConfigServerBootstrapper implements BootstrapRegistryInitializer {
+abstract class AbstractConfigBootstrapper implements BootstrapRegistryInitializer {
+
+    /**
+     * Check if a specific feature is enabled before initializing.
+     * @return true if the bootstrapper should be initialized
+     */
+    protected boolean isEnabled() {
+        return true;
+    }
+
+    @Override
+    public void initialize(BootstrapRegistry registry) {
+        if (!isEnabled()) {
+            return;
+        }
+        doInitialize(registry);
+    }
+
+    /**
+     * Initialize the bootstrap registry.
+     * @param registry the bootstrap registry
+     */
+    protected abstract void doInitialize(BootstrapRegistry registry);
+}
+
+public class ConfigServerBootstrapper extends AbstractConfigBootstrapper {
 
 	private Function<BootstrapContext, RestTemplate> restTemplateFactory;
 
@@ -52,7 +77,7 @@ public class ConfigServerBootstrapper implements BootstrapRegistryInitializer {
 	}
 
 	@Override
-	public void initialize(BootstrapRegistry registry) {
+	protected void doInitialize(BootstrapRegistry registry) {
 		if (restTemplateFactory != null) {
 			registry.register(RestTemplate.class, restTemplateFactory::apply);
 		}

@@ -17,7 +17,6 @@
 package org.springframework.cloud.config.client;
 
 import org.springframework.boot.BootstrapRegistry;
-import org.springframework.boot.BootstrapRegistryInitializer;
 import org.springframework.cloud.config.client.ConfigServerBootstrapper.LoaderInterceptor;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.ClassUtils;
@@ -28,17 +27,18 @@ import org.springframework.util.ClassUtils;
  * @author Marcin Grzejszczak
  * @since 3.0.0
  */
-public class ConfigClientRetryBootstrapper implements BootstrapRegistryInitializer {
+public class ConfigClientRetryBootstrapper extends AbstractConfigBootstrapper {
 
 	static final boolean RETRY_IS_PRESENT = ClassUtils.isPresent("org.springframework.retry.annotation.Retryable",
 			null);
+	@Override
+	protected boolean isEnabled() {
+		return RETRY_IS_PRESENT;
+	}
+	
 
 	@Override
-	public void initialize(BootstrapRegistry registry) {
-		if (!RETRY_IS_PRESENT) {
-			return;
-		}
-
+	public void doInitialize(BootstrapRegistry registry) {
 		registry.registerIfAbsent(LoaderInterceptor.class, context -> loadContext -> {
 			ConfigServerConfigDataResource resource = loadContext.getResource();
 			if (resource.getProperties().isFailFast()) {
