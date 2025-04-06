@@ -20,16 +20,17 @@ public class ConfigClientConfigDataTlsTests extends ConfigClientTlsTests {
 
 	@Override
 	protected TlsConfigClientRunner createConfigClient(boolean optional) {
-		String importValue = "configserver:";
-		if (optional) {
-			importValue = "optional:" + importValue;
-		}
+		String importValue = buildImportValue(optional);
 		return new TlsConfigClientRunner(TestApp.class, server, "spring.config.import", importValue);
 	}
 
 	@Override
 	protected TlsConfigClientRunner createConfigClient() {
-		return new TlsConfigClientRunner(TestApp.class, server, "spring.config.import", "optional:configserver:");
+		return createConfigClient(true);
+	}
+
+	private String buildImportValue(boolean optional){
+		return optional ? "optional:configserver:" : "configserver:";
 	}
 
 }
